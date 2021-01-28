@@ -66,7 +66,7 @@
 
 \section{Background}
 
-When conducting nEDM measurements, a very accurate understanding of the background magnetic field is required to be able to get an understanding of the systematic uncertainties associated with any results. In particular, understanding to what degree the field is inhomogeneous is of vital importance. To solve this problem, \cite{non-uniformity} introduced a method in which spherical harmonic decomposition is used to analyze the fields in different orders. Note that as all work in this note is essentially building on that of \cite{non-uniformity}, it is expected that at least section 2 is of familiarity to the reader. 
+When conducting nEDM measurements, a very accurate understanding of the background magnetic field is required to be able to get an understanding of the systematic uncertainties associated with any results. In particular, understanding to what degree the field is inhomogeneous is of vital importance. To solve this problem, \cite{non-uniformity} introduced a method in which spherical harmonic decomposition is used to analyze the fields in different orders. 
 
 The first step towards understanding the magnetic field at a point is to define it as a sum of orthonormal basis polynomials of the form
 
@@ -77,7 +77,7 @@ The first step towards understanding the magnetic field at a point is to define 
 where $\Pi_{l, m}$ are harmonic polynomials in the $x, y$ and $z$ directions of degree $l$ and order $m$, and $G_{l, m}$ are coefficients representing the linear combination of harmonic polynomials. The key behind the construction of these basis functions is that, due to Maxwell's equations, $\nabla\times \vec B=\mu_1j+\frac1{c^2}\frac{\partial \vec E}{\partial t}$. However, since there is no current in the experimental apparatus and the electric field will be constant, this reduces to $\nabla\times\vec B=0$. This, coupled with the definition of the scalar magnetic potential of $\vec B=\nabla \Sigma$, means that the magnetic potential fulfills Laplace's equation, i.e. $\Delta\Sigma=0$. Using the fact that the harmonic polynomials are a orthonormal basis for equations satisfying Laplace's equation (by definition), we have that 
 
 \begin{equation}
-    \Sigma(\vec r)=\sum_{0}^\infty\sum_{-l}^/l\Sigma_{l, m}(\vec r)
+    \Sigma(\vec r)=\sum_{0}^\infty\sum_{-l}^lG_{l,m}\Sigma_{l, m}(\vec r)
 \end{equation}
 
 with $\Sigma_{l, m}$ being our choice of normalization for the harmonic polynomials. This, coupled with \ref{basis}, tells us that $\Pi_{i, l, m}=\partial_i\Sigma_{l+1, m}$ for $i\in\{x, y, z\}$. In this case, we choose a normalization of
@@ -99,7 +99,7 @@ A point of interest is the relationship between the basis coefficients, $G_{l, m
 
 \section{Approach}
 
-The approach used to find the results is to use \ref{basis} to generated a set of linear equations in $G_{l, m}$ by repeatedly taking different combinations of derivatives of both sides of the equation. The key to this approach is to note that because each $\Pi_{l,m}$ is of degree $l$, for a given $l$ after taking $l$ partial derivatives all terms with degree lower than $l$ will have turned into constants and disappeared and all terms of degree higher than $l$ will still be dependent on at least one of $x, y$ or $z$. Since \ref{basis} holds for all $x, y, z\in\mathbb{R}$, taking $\vec r=0$ means only terms of degree $l$ remain and can thus be solved in terms of the magnetic field partial derivatives. After the end of this process, given some chosen $l$ chosen, we would have many equations that looks like 
+The approach used to find the results is to use \ref{basis} to generated a set of linear equations in $G_{l, m}$ by repeatedly taking different combinations of partial derivatives of both sides of the equation. The key to this approach is to note that because each $\Pi_{l,m}$ is of degree $l$, for a given $l$ after taking $l$ partial derivatives all terms with degree lower than $l$ will have turned into constants and disappeared and all terms of degree higher than $l$ will still be dependent on at least one of $x, y$ or $z$. Since \ref{basis} holds for all $x, y, z\in\mathbb{R}$, taking $\vec r=0$ means only terms of degree $l$ remain and can thus be solved in terms of the magnetic field partial derivatives. After the end of this process, given some chosen $l$ chosen, we would have many equations that looks like 
 
 \begin{equation}
     \partial_{i_1}\partial_{i_2}\ldots\partial_{i_l}\vec B(\vec0)=\sum_{m=-l-1}^{l+1}G_{l, m}\partial_{i_1}\ldots\partial_{i_l}\vec\Pi_{l, m}
@@ -109,7 +109,7 @@ with each equation corresponding to a choice of $i_0, \ldots, i_l\in \{x, y, z\}
 
 \section{Implementation}
 
-To implement the above method for solving the $G_{lm}$s in terms of the magnetic field, Mathematica was used to solve all the equations analytically. For reference the code will be explained in detail in this section. In absolute terms it is not extremely long, but several steps do deserve explanation. 
+To implement the above method for solving the $G_{l,m}$s in terms of the magnetic field, Mathematica was used to solve all the equations analytically. For reference the code will be explained in detail in this section. In absolute terms it is not extremely long, but several steps do deserve explanation. 
 
 The first thing in the script is to construct the basis functions $\Pi_{l, m}$ as described above. This is accomplished in the following set of lines: 
 
@@ -120,9 +120,9 @@ sigmac[l_, m_, x_, y_, z_]=TransformedField["Spherical"->"Cartesian", sigma[l, m
 pi[l_, m_, x_, y_, z_]={d[sigmac[l+1, m, x, y, z], x], d[sigmac[l+1, m, x, y, z], y], d[sigmac[l+1, m, x, y, z], z]};
 \end{lstlisting}
 
-first the coefficients $c_{l, m}$ are generated, after which they are used to generate the magnetic scalar potential basis functions $\sigma_{l, m}$. these are then converted from spherical coordinates to cartesian ones, represented by \lstinline{sigmac} using mathematica built in functionality. these are then differentiated to produce $\pi_{l, m}$ as required. 
+first the coefficients $C_{l, m}$ are generated, after which they are used to generate the magnetic scalar potential basis functions $\Sigma_{l, m}$. These are then converted from spherical coordinates to cartesian ones, represented by \lstinline{sigmac} using mathematica built in functionality. these are then differentiated to produce $\Pi_{l, m}$ as required. 
 
-next we must construct the set of coefficients to solve for. in mathematica it is not possible to have a list of unnamed variables, so some string manipulation is required:
+Next we must construct the set of coefficients to solve for. in mathematica it is not possible to have a list of unnamed variables, so some string manipulation is required:
 
 \begin{lstlisting}[language=mathematica]
 maxL=2
@@ -149,9 +149,63 @@ Do[
 , {i, 0, maxL}]
 \end{lstlisting}
 
-\lstinline{equations} here is a list of list of equations, indexed by the order $l$ that each set of equations correspond to. The equations corresponding with $l=0$ is obviously just \ref{basis} itself, hence the first line. Then, the program loops over $0\leq l\leq$\lstinline{maxL}, each time on the fourth line appending all permutations of the derivatives of the last set of equations. Note that this actually produces many linearly dependent equations, as it reproduces equations in which derivatives are simply taken in different orders. However, it is extremely easy for Mathematica to see this fact in the later solving step, and as this step is not the bottleneck on performance the added simplicity of not having to keep track of which derivatives have been taken far outweighs the minimizing of equations. 
+\lstinline{equations} here is a list of list of equations, indexed by the degree $l$ that each set of equations correspond to. The equations corresponding with $l=0$ is obviously just \ref{basis} itself, hence the first line. Then, the program loops over $0\leq l\leq$\lstinline{maxL}, each time on the fourth line appending all permutations of the derivatives of the last set of equations. Note that this actually produces many linearly dependent equations, as it reproduces equations in which derivatives are simply taken in different orders. However, it is extremely easy for Mathematica to see this fact in the later solving step, and as this step is not the bottleneck on performance the added simplicity of not having to keep track of which derivatives have been taken far outweighs the minimizing of equations. 
 
-Finally, the last step is in line 3 which is to solve the set of equations that were just layed out. 
+Finally, the last step is in line 3 which is to solve the set of equations that were just layed out. Even though there are many derivatives involved it is a linear and not differential equation to be solved, so the built in \lstinline{Solve} tool is used. To get rid of all the terms of higher degree than \lstinline{i} (the current degree), we first simplify the equations using the assumption $x=y=z=0$. 
+
+An extremely important aspect of this step is passing the \lstinline{MaxExtraConditions->Automatic} option into \lstinline{Solve} function. What this does is it lets Mathematica make additional assumptions because, as previously mentioned, the equations are normally overdetermined. The \lstinline{Normal} function removes these assumptions for ease of reading the results, but a good check is to remove the \lstinline{Normal} function and check that all the assumptions made correspond to the results from Maxwell's equations giving us that $\nabla\times\vec B=0$. The output for any given $l$ (in this case $l=0$) looks like the following: 
+
+\begin{lstlisting}
+{$g0n1->by[0,0,0],$g00->bz[0,0,0],$g01->bx[0,0,0]}
+\end{lstlisting}
+
+This is obviously not the nicest formatting, so a table of all the results up to degree $l=3$ is shown in \ref{glmtable}. 
+
+{\renewcommand{\arraystretch}{1.4}
+\begin{table}[h!]
+\begin{center}
+    \begin{tabular}{ |c|c|c| }
+        \hline
+        $l$ & $m$ & $G_{l,m}$ \\
+        \hline
+        $0$ & $-1$ & $B_y$ \\
+        $0$ & $0$ & $B_z$ \\
+        $0$ & $1$ & $B_x$ \\
+        $1$ & $-2$ & $\partial_xB_y$ \\
+        $1$ & $-1$ & $\partial_yB_z$ \\
+        $1$ & $0$ & $-\partial_yB_y-\partial_xB_x$ \\
+        $1$ & $1$ & $\partial_xB_z$ \\
+        $1$ & $2$ & $\frac12\partial_xB_x-\frac12\partial_yB_y$ \\
+        \hline
+        $2$ & $-3$ & $-\frac18\partial_{yy}B_y+\frac38\partial_{xx}B_y$ \\
+        $2$ & $-2$ & $\frac12\partial_{xy}B_z$ \\
+        $2$ & $-1$ & $-\frac12\partial_{yy}B_y-\frac12\partial_{xx}B_y$ \\
+        $2$ & $0$ & $-\frac12\partial_{yy}B_z-\frac12\partial_{xx}B_z$ \\
+        $2$ & $1$ & $-\frac12\partial_{xy}B_y-\frac12\partial_{xx}B_x$ \\
+        $2$ & $2$ & $-\frac14\partial_{yy}B_z+\frac14\partial_{xx}B_z$ \\
+        $2$ & $3$ & $\frac{-3}8\partial_{xy}B_y+\frac18\partial_{xx}B_x$ \\
+        \hline
+        $3$ & $-4$ & $-\frac1{12}\partial_{xyy}B_y+\frac1{12}\partial_{xxx}B_y$ \\
+        $3$ & $-3$ & $-\frac1{24}\partial_{yyy}B_z+\frac18\partial_{xxy}B_z$ \\
+        $3$ & $-2$ & $-\frac16\partial_{xyy}B_y-\frac16\partial_{xxx}B_y$ \\
+        $3$ & $-1$ & $-\frac16\partial_{yyy}B_z-\frac16\partial_{xxy}B_z$ \\
+        $3$ & $0$ & $\frac16\partial_{yyy}B_y+\frac13\partial_{xxy}B_y+\frac16\partial_{xxx}B_x$ \\
+        $3$ & $1$ & $-\frac16\partial_{xyy}B_z-\frac16\partial_{xxx}B_z$ \\
+        $3$ & $2$ & $\frac1{12}\partial_{yyy}B_y-\frac1{12}\partial_{xxx}B_x$ \\
+        $3$ & $3$ & $-\frac18\partial_{xyy}B_z+\frac1{24}\partial_{xxx}B_z$ \\
+        $3$ & $4$ & $\frac1{48}\partial_{yyy}B_y-\frac18\partial_{xxy}B_y+\frac1{48}\partial_{xxx}B_x$ \\
+
+        \hline
+    \end{tabular}
+\end{center}
+\caption{List of all $G_{l, m}$ up to $l=3$. Note that there are many different ways of expressing each of these using the fact that the order of derivatives doesn't matter and $\nabla\times\vec B=0$, in this case the form of each is simply what was outputted from Mathematica. }
+\label{glmtable}
+\end{table}
+}
+
+\section{Conclusion}
+
+This document has explained approach and solution to the problem of solving for the spherical harmonic decomposition coefficients in terms of the magnetic field partial derivatives. The implementation used Mathematica to analytically find this relationship explicitely. When conducting the eventual nEDM measurements, these relationships will give further insight into the non-uniformity of the magnetic field of the experimental area and allow for a better handle on the underlying systematic uncertainties. 
 
 \printbibliography
 

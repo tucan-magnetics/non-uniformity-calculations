@@ -86,7 +86,7 @@ with $\Sigma_{l, m}$ being our choice of normalization for the harmonic polynomi
     \Sigma_{l, m}=C_{l, m}(\phi)r^lP_l^{|m|}(\cos\theta), 
 \end{equation}
 
-with $P_l^m$ being the legendre polynomial of degree $l$ and order $m$ and
+with $P_l^m$ being the Legendre polynomial of degree $l$ and order $m$ and
 
 \begin{equation}
     C_{l, m}(\phi)=\frac{(l-1)!(-2)^{|m|}}{(l+|m|)!}\begin{cases}
@@ -105,7 +105,7 @@ The approach used to find the results is to use \ref{basis} to generated a set o
     \partial_{i_1}\partial_{i_2}\ldots\partial_{i_l}\vec B(\vec0)=\sum_{m=-l-1}^{l+1}G_{l, m}\partial_{i_1}\ldots\partial_{i_l}\vec\Pi_{l, m}
 \end{equation}
 
-with each equation corresponding to a choice of $i_0, \ldots, i_l\in \{x, y, z\}$. Since the order one applies derivatives in does not matter, the number of such equations is simply the number of ways of distributing the $l$ coefficients between the choice of ${x, y, z}$ where order does not matter times the three equations per vector, which is $3\cdot{{l+2}\choose{l}}=\frac32(l+1)(l+2)$. This is good since it grows faster than the number of variables to solve for, which is always $2l+3$. However it also means that the system is overdetermined for all $l\geq1$. However, as mentioned previously $\nabla\times\vec B=0$ which implies $\partial_iB_j=\partial_jB_i$ for all $i\neq j\in\{x, y, z\}$, which makes the equations solvable. 
+with each equation corresponding to a choice of $i_0, \ldots, i_l\in \{x, y, z\}$. Since the order one applies derivatives in does not matter, the number of such equations is simply the number of ways of distributing the $l$ coefficients between the choice of ${x, y, z}$ where order does not matter times the three equations per vector, which is $3\cdot{{l+2}\choose{l}}=\frac32(l+1)(l+2)$. This is good since it grows faster than the number of variables to solve for, which is always $2l+3$. It also means that the system is overdetermined for all $l\geq1$. However, as mentioned previously $\nabla\times\vec B=0$ which implies $\partial_iB_j=\partial_jB_i$ for all $i\neq j\in\{x, y, z\}$, which makes the equations solvable. 
 
 \section{Implementation}
 
@@ -117,7 +117,7 @@ The first thing in the script is to construct the basis functions $\Pi_{l, m}$ a
 c[l_, m_, phi_] = (l-1)!(-2)^Abs[m]/(l+Abs[m])!If[m>=0, Cos[Abs[m]*phi], Sin[Abs[m]*phi]];
 sigma[l_, m_, r_, phi_, theta_] = c[l, m, phi]*r^l*LegendreP[l, Abs[m], Cos[theta]];
 sigmac[l_, m_, x_, y_, z_]=TransformedField["Spherical"->"Cartesian", sigma[l, m, r, phi, theta], {r, theta, phi}->{x, y, z}];
-pi[l_, m_, x_, y_, z_]={d[sigmac[l+1, m, x, y, z], x], d[sigmac[l+1, m, x, y, z], y], d[sigmac[l+1, m, x, y, z], z]};
+pi[l_, m_, x_, y_, z_]={D[sigmac[l+1, m, x, y, z], x], D[sigmac[l+1, m, x, y, z], y], D[sigmac[l+1, m, x, y, z], z]};
 \end{lstlisting}
 
 first the coefficients $C_{l, m}$ are generated, after which they are used to generate the magnetic scalar potential basis functions $\Sigma_{l, m}$. These are then converted from spherical coordinates to cartesian ones, represented by \lstinline{sigmac} using mathematica built in functionality. these are then differentiated to produce $\Pi_{l, m}$ as required. 
